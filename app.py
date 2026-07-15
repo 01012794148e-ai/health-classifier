@@ -14,50 +14,49 @@ def load_assets():
 try:
     model, scaler = load_assets()
 except Exception as e:
-    st.error(f"خطأ في تحميل ملفات النموذج: {e}")
+    st.error(f"Error loading model assets: {e}")
 
-# 2. تصميم واجهة المستخدم
-st.title("تطبيق تشخيص الحالات (Healthy vs Sick)")
-st.write("قم برفع ملف `.mat` يحتوي على البيانات لاستخراج التوقعات.")
+# 2. User Interface Design
+st.title("Health Classification System (Healthy vs Sick)")
+st.write("Upload a `.mat` file containing the data to extract predictions.")
 
-# مكان لرفع الملف
-uploaded_file = st.file_uploader("اختر ملف .mat", type=["mat"])
+# File uploader
+uploaded_file = st.file_uploader("Choose a .mat file", type=["mat"])
 
 if uploaded_file is not None:
     try:
-       
         mat_data = loadmat(uploaded_file)
         
         keys = [k for k in mat_data.keys() if not k.startswith('__')]
         
         if len(keys) == 0:
-            st.error("الملف فارغ أو لا يحتوي على مصفوفات صالحة.")
+            st.error("The file is empty or does not contain valid matrices.")
         else:
             feature_name = keys[0]
             data_matrix = mat_data[feature_name]
             
-            st.info(f"تم العثور على المصفوفة: `{feature_name}` بحجم {data_matrix.shape}")
+            st.info(f"Matrix detected: `{feature_name}` with shape {data_matrix.shape}")
             
-            # التأكد من مطابقة عدد الميزات (52 ميزة)
+            # Ensure features match (52 features)
             if data_matrix.shape[1] != 52 and data_matrix.shape[0] == 52:
                 data_matrix = data_matrix.T
                 
             if data_matrix.shape[1] == 52:
-                # 3. معالجة البيانات وعمل التوقع
+                # 3. Data processing and prediction
                 scaled_data = scaler.transform(data_matrix)
                 predictions = model.predict(scaled_data)
                 
-                st.subheader("نتائج التوقع:")
+                st.subheader("Prediction Results:")
                 
                 for i, pred in enumerate(predictions):
                     prob = float(pred[0])
-                    # 1 تعني healthy و 0 تعني sick
-                    status = "Healthy (سليم)" if prob >= 0.5 else "Sick (مريض)"
+                    # 1 represents Healthy, 0 represents Sick
+                    status = "Healthy" if prob >= 0.5 else "Sick"
                     confidence = prob if prob >= 0.5 else (1 - prob)
                     
-                    st.write(f"العينة رقم {i+1}: **{status}** (نسبة التأكد: {confidence*100:.2f}%)")
+                    st.write(f"Sample {i+1}: **{status}** (Confidence: {confidence*100:.2f}%)")
             else:
-                st.error(f"خطأ: يجب أن يحتوي الملف على 52 ميزة (Features). الحجم الحالي: {data_matrix.shape}")
+                st.error(f"Error: The file must contain exactly 52 features. Current shape: {data_matrix.shape}")
                 
     except Exception as e:
-        st.error(f"حدث خطأ أثناء معالجة الملف: {e}")
+        st.error(f"An error occurred while processing the file: {e}")
