@@ -25,16 +25,14 @@ uploaded_file = st.file_uploader("اختر ملف .mat", type=["mat"])
 
 if uploaded_file is not None:
     try:
-        # قراءة ملف الـ mat
+       
         mat_data = loadmat(uploaded_file)
         
-        # البحث عن اسم المصفوفة داخل الملف تلقائياً
         keys = [k for k in mat_data.keys() if not k.startswith('__')]
         
         if len(keys) == 0:
             st.error("الملف فارغ أو لا يحتوي على مصفوفات صالحة.")
         else:
-            # اختيار أول مصفوفة بيانات متاحة بالملف
             feature_name = keys[0]
             data_matrix = mat_data[feature_name]
             
@@ -51,7 +49,6 @@ if uploaded_file is not None:
                 
                 st.subheader("نتائج التوقع:")
                 
-                # عرض النتيجة لكل عينة
                 for i, pred in enumerate(predictions):
                     prob = float(pred[0])
                     # 1 تعني healthy و 0 تعني sick
